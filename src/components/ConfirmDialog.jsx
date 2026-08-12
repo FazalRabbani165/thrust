@@ -1,0 +1,3 @@
+import React from 'react';
+
+export default function ConfirmDialog(props){if(!props.isOpen)return null;return React.createElement('div',{className:'confirm-overlay',onClick:function(e){if(e.target===e.currentTarget)props.onCancel()}},React.createElement('div',{className:'confirm-panel'},React.createElement('h3',null,props.title||'Confirm'),React.createElement('p',null,props.message||'Are you sure?'),React.createElement('div',{className:'confirm-actions'},React.createElement('button',{className:'btn btn-secondary',onClick:props.onCancel},'Cancel'),React.createElement('button',{className:'btn '+(props.danger?'btn-danger':'btn-primary'),onClick:props.onConfirm},props.confirmText||'Confirm'))))}
