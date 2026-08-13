@@ -42,7 +42,7 @@ jobs:
             "ndk;27.2.12479018"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Build Thrust APK
         run: npx tauri android build --apk --debug --target aarch64

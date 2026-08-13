@@ -12,7 +12,9 @@
   "dependencies": {
     "@tauri-apps/plugin-notification": "^2.3.3",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "pdfjs-dist": "^5.4.149",
+    "tesseract.js": "^6.0.1"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.11.4",
