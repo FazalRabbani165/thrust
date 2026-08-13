@@ -45,7 +45,7 @@ jobs:
         run: npm ci
 
       - name: Build Thrust APK
-        run: npx tauri android build --apk --target aarch64
+        run: npx tauri android build --apk --debug --target aarch64
 
       - name: Find APK
         run: find src-tauri/gen/android -name "*.apk" -type f
