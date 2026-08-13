@@ -132,3 +132,79 @@
 }
 @media(max-width:380px){.stat-card{padding:var(--space-2)}.stat-card .stat-value{font-size:var(--text-lg)}.stat-card .stat-label{font-size:.6rem}.main-content{padding-left:var(--space-3);padding-right:var(--space-3)}}
 @media(min-width:769px){.mobile-header{display:none!important}.mobile-nav{display:none!important}}
+
+
+/* ===== THRUST mobile-first Android polish ===== */
+.app{min-width:0}
+.main-content{min-width:0;overflow-x:clip}
+.mobile-header{min-width:0}
+
+@media(max-width:768px){
+  /* The original .app is a flex row. On phones that placed THRUST beside the page. */
+  .app{display:block!important;width:100%;min-height:100dvh;overflow-x:clip}
+  .mobile-header{
+    display:flex!important;
+    align-items:center;
+    min-height:56px;
+    padding:calc(env(safe-area-inset-top, 0px) + 12px) 16px 10px;
+    background:color-mix(in srgb,var(--bg-primary) 94%,transparent);
+    border-bottom:1px solid var(--border-primary);
+    position:sticky;
+    top:0;
+    z-index:90;
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+  }
+  .mobile-header h1{font-size:1rem;line-height:1;letter-spacing:.16em}
+  .main-content{
+    margin-left:0!important;
+    padding:20px 16px calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px) + 24px)!important;
+    max-width:none!important;
+    width:100%!important;
+  }
+  .mobile-nav{
+    height:calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+    padding:4px 6px env(safe-area-inset-bottom, 0px);
+    background:color-mix(in srgb,var(--bg-secondary) 96%,transparent);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+  }
+  .mobile-nav-inner{min-width:0}
+  .mobile-nav-item{min-width:0;flex:1;max-width:82px;padding:6px 4px}
+  .tasks-header{width:100%;min-width:0}
+  .tasks-header .btn{max-width:100%;width:auto}
+  .search-bar{width:100%;min-width:0}
+  .search-bar input{min-width:0}
+  .tasks-filters{width:100%;max-width:100%;overscroll-behavior-x:contain}
+  .task-item{width:100%;min-width:0}
+  .task-content{min-width:0;overflow:hidden}
+  .task-title,.task-description{overflow-wrap:anywhere}
+  .task-actions{margin-left:auto}
+  .dashboard-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .stat-card{min-width:0}
+  .stat-card .stat-value{overflow:hidden;text-overflow:ellipsis}
+  .setting-row{width:100%;min-width:0}
+  .setting-row>div{min-width:0;width:100%}
+  .theme-options{width:100%;min-width:0}
+  .theme-btn{min-width:0}
+  .subjects-list{min-width:0}
+  .subject-tag{max-width:100%;overflow-wrap:anywhere}
+  .add-subject-row{width:100%;min-width:0}
+  .danger-zone{width:100%;min-width:0}
+  .btn{touch-action:manipulation}
+}
+@media(max-width:420px){
+  .main-content{padding-left:12px!important;padding-right:12px!important}
+  .dashboard-stats{gap:6px}
+  .stat-card{padding:12px 9px}
+  .stat-card .stat-value{font-size:1.15rem}
+  .stat-card .stat-label{font-size:.58rem}
+  .task-item{padding:12px 10px;gap:10px}
+  .task-actions{gap:0}
+  .task-action-btn{width:34px;height:34px}
+}
+@media(max-width:360px){
+  .mobile-header{padding-left:12px;padding-right:12px}
+  .main-content{padding-left:10px!important;padding-right:10px!important}
+  .dashboard-stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
