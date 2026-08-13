@@ -1,9 +1,438 @@
+import{useMemo}from'react';
+import{h}from'../h';
+import{
+  getTasks,
+  getSessions,
+  getCards,
+  calcStreak,
+  getDailyFocusMin,
+  getLast7DaysFocus,
+  getLast7DaysTasks,
+  getLast7DaysCardsReviewed,
+  getTasksCompletedInRange,
+  getSessionsInRange,
+  isToday,
+  formatDuration
+}from'../utils/storage';
 
-import{useMemo}from'react';import{h}from'../h';
-import{getTasks,getSessions,getCards,calcStreak,getDailyFocusMin,getLast7DaysFocus,getLast7DaysTasks,getTasksCompletedInRange,getSessionsInRange,isToday,formatDuration}from'../utils/storage';
-export default function StatisticsPage(props){var tasks=getTasks();var sessions=getSessions();var cards=getCards();var todayFocus=getDailyFocusMin();var weekFocus=getSessionsInRange(7).reduce(function(s,ss){return s+(ss.duration||0)},0);var monthFocus=getSessionsInRange(30).reduce(function(s,ss){return s+(ss.duration||0)},0);
-var todayCompleted=tasks.filter(function(t){return t.completed&&isToday(t.completedAt)}).length;var weekCompleted=getTasksCompletedInRange(7).length;var totalTasks=tasks.length;var completedTasks=tasks.filter(function(t){return t.completed}).length;var rate=totalTasks>0?Math.round(completedTasks/totalTasks*100):0;
-var dueCards=cards.filter(function(c){if(!c.nextReview||c.status==='new')return true;return new Date(c.nextReview)<=new Date()}).length;var masteredCards=cards.filter(function(c){return c.status==='mastered'}).length;var totalCards=cards.length;
-var streak=calcStreak();var weekSessions=sessions.filter(function(s){var d=new Date();d.setDate(d.getDate()-7);return new Date(s.completedAt||s.createdAt)>=d&&s.type==='work'}).length;
-var focusChart=getLast7DaysFocus();var taskChart=getLast7DaysTasks();var maxFocus=Math.max.apply(null,focusChart.map(function(d){return d.minutes}).concat([1]));var maxTasks=Math.max.apply(null,taskChart.map(function(d){return d.count}).concat([1]));
-return h('div',null,h('h2',{style:{marginBottom:'var(--space-6)'}},'Statistics'),h('div',{className:'streak-display'},h('div',{className:'streak-fire'},'🔥'),h('div',{className:'streak-num'},streak),h('div',{className:'streak-label'},'DAY STREAK')),h('div',{className:'stats-overview'},[{v:formatDuration(todayFocus),l:'Focus Today',c:'var(--accent-text)'},{v:formatDuration(weekFocus),l:'Focus This Week'},{v:weekSessions,l:'Sessions This Week'},{v:todayCompleted,l:'Tasks Completed Today',c:'var(--success)'}].map(function(s,i){return h('div',{className:'stat-block',key:i},h('div',{className:'sb-value',style:{color:s.c||'var(--text-primary)'}},s.v),h('div',{className:'sb-label'},s.l))})),h('div',{className:'chart-section'},h('h3',null,'Daily Focus (Last 7 Days)'),h('div',{className:'chart-bars'},focusChart.map(function(d,i){var pct=Math.round(d.minutes/maxFocus*100);return h('div',{className:'chart-bar-col',key:i},h('div',{className:'chart-bar-value',style:{color:d.minutes>0?'var(--text-secondary)':'var(--text-tertiary)'}},d.minutes>0?d.minutes+'m':''),h('div',{className:'chart-bar',style:{height:Math.max(pct,2)+'%'}}),h('div',{className:'chart-bar-label'},d.label))}))),h('div',{className:'chart-section'},h('h3',null,'Tasks Completed (Last 7 Days)'),h('div',{className:'chart-bars'},taskChart.map(function(d,i){var pct=Math.round(d.count/maxTasks*100);return h('div',{className:'chart-bar-col',key:i},h('div',{className:'chart-bar-value',style:{color:d.count>0?'var(--text-secondary)':'var(--text-tertiary)'}},d.count>0?d.count:''),h('div',{className:'chart-bar',style:{height:Math.max(pct,2)+'%',background:'var(--success)'}}),h('div',{className:'chart-bar-label'},d.label))}))),h('div',{className:'stats-overview'},[{v:completedTasks+'/'+totalTasks,l:'Total Tasks ('+rate+'%)'},{v:totalCards,l:'Total Cards'},{v:masteredCards,l:'Cards Mastered',c:'var(--success)'},{v:dueCards,l:'Cards Due',c:'var(--accent-text)'}].map(function(s,i){return h('div',{className:'stat-block',key:i},h('div',{className:'sb-value',style:{color:s.c||'var(--text-primary)'}},s.v),h('div',{className:'sb-label'},s.l))})))}
+export default function StatisticsPage(props){
+  var tasks=getTasks();
+  var sessions=getSessions();
+  var cards=getCards();
+
+  var todayFocus=getDailyFocusMin();
+
+  var weekFocus=getSessionsInRange(7)
+    .filter(function(ss){
+      return ss.type==='work'||!ss.type;
+    })
+    .reduce(function(s,ss){
+      return s+(ss.duration||0);
+    },0);
+
+  var monthFocus=getSessionsInRange(30)
+    .filter(function(ss){
+      return ss.type==='work'||!ss.type;
+    })
+    .reduce(function(s,ss){
+      return s+(ss.duration||0);
+    },0);
+
+  var todayCompleted=tasks.filter(function(t){
+    return t.completed&&isToday(t.completedAt);
+  }).length;
+
+  var weekCompleted=getTasksCompletedInRange(7).length;
+
+  var totalTasks=tasks.length;
+
+  var completedTasks=tasks.filter(function(t){
+    return t.completed;
+  }).length;
+
+  var rate=totalTasks>0
+    ?Math.round(completedTasks/totalTasks*100)
+    :0;
+
+  var todayCardsReviewed=cards.filter(function(c){
+    return c.lastReviewed&&isToday(c.lastReviewed);
+  }).length;
+
+  var dueCards=cards.filter(function(c){
+    if(!c.nextReview||c.status==='new')return true;
+    return new Date(c.nextReview)<=new Date();
+  }).length;
+
+  var masteredCards=cards.filter(function(c){
+    return c.status==='mastered';
+  }).length;
+
+  var totalCards=cards.length;
+
+  var streak=calcStreak();
+
+  var weekSessions=sessions.filter(function(s){
+    var d=new Date();
+    d.setDate(d.getDate()-7);
+
+    return new Date(s.completedAt||s.createdAt)>=d
+      &&s.type==='work';
+  }).length;
+
+  var focusChart=getLast7DaysFocus();
+  var taskChart=getLast7DaysTasks();
+  var cardChart=getLast7DaysCardsReviewed();
+
+  var maxFocus=Math.max.apply(
+    null,
+    focusChart.map(function(d){
+      return d.minutes;
+    }).concat([1])
+  );
+
+  var maxTasks=Math.max.apply(
+    null,
+    taskChart.map(function(d){
+      return d.count;
+    }).concat([1])
+  );
+
+  var maxCards=Math.max.apply(
+    null,
+    cardChart.map(function(d){
+      return d.count;
+    }).concat([1])
+  );
+
+  return h(
+    'div',
+    null,
+
+    h(
+      'h2',
+      {style:{marginBottom:'var(--space-6)'}},
+      'Statistics'
+    ),
+
+    h(
+      'div',
+      {className:'streak-display'},
+
+      h(
+        'div',
+        {className:'streak-fire'},
+        '🔥'
+      ),
+
+      h(
+        'div',
+        {className:'streak-num'},
+        streak
+      ),
+
+      h(
+        'div',
+        {className:'streak-label'},
+        'DAY STREAK'
+      )
+    ),
+
+    h(
+      'div',
+      {className:'stats-overview'},
+
+      [
+        {
+          v:formatDuration(todayFocus),
+          l:'Focus Today',
+          c:'var(--accent-text)'
+        },
+        {
+          v:formatDuration(weekFocus),
+          l:'Focus This Week'
+        },
+        {
+          v:weekSessions,
+          l:'Sessions This Week'
+        },
+        {
+          v:todayCompleted,
+          l:'Tasks Completed Today',
+          c:'var(--success)'
+        },
+        {
+          v:todayCardsReviewed,
+          l:'Cards Reviewed Today',
+          c:'var(--accent-text)'
+        }
+      ].map(function(s,i){
+        return h(
+          'div',
+          {
+            className:'stat-block',
+            key:i
+          },
+
+          h(
+            'div',
+            {
+              className:'sb-value',
+              style:{
+                color:s.c||'var(--text-primary)'
+              }
+            },
+            s.v
+          ),
+
+          h(
+            'div',
+            {className:'sb-label'},
+            s.l
+          )
+        );
+      })
+    ),
+
+    h(
+      'div',
+      {className:'chart-section'},
+
+      h(
+        'h3',
+        null,
+        'Daily Focus (Last 7 Days)'
+      ),
+
+      h(
+        'div',
+        {className:'chart-bars'},
+
+        focusChart.map(function(d,i){
+          var pct=Math.round(
+            d.minutes/maxFocus*100
+          );
+
+          return h(
+            'div',
+            {
+              className:'chart-bar-col',
+              key:i
+            },
+
+            h(
+              'div',
+              {
+                className:'chart-bar-value',
+                style:{
+                  color:d.minutes>0
+                    ?'var(--text-secondary)'
+                    :'var(--text-tertiary)'
+                }
+              },
+              d.minutes>0
+                ?d.minutes+'m'
+                :''
+            ),
+
+            h(
+              'div',
+              {
+                className:'chart-bar',
+                style:{
+                  height:Math.max(pct,2)+'%'
+                }
+              }
+            ),
+
+            h(
+              'div',
+              {
+                className:'chart-bar-label'
+              },
+              d.label
+            )
+          );
+        })
+      )
+    ),
+
+    h(
+      'div',
+      {className:'chart-section'},
+
+      h(
+        'h3',
+        null,
+        'Tasks Completed (Last 7 Days)'
+      ),
+
+      h(
+        'div',
+        {className:'chart-bars'},
+
+        taskChart.map(function(d,i){
+          var pct=Math.round(
+            d.count/maxTasks*100
+          );
+
+          return h(
+            'div',
+            {
+              className:'chart-bar-col',
+              key:i
+            },
+
+            h(
+              'div',
+              {
+                className:'chart-bar-value',
+                style:{
+                  color:d.count>0
+                    ?'var(--text-secondary)'
+                    :'var(--text-tertiary)'
+                }
+              },
+              d.count>0
+                ?d.count
+                :''
+            ),
+
+            h(
+              'div',
+              {
+                className:'chart-bar',
+                style:{
+                  height:Math.max(pct,2)+'%',
+                  background:'var(--success)'
+                }
+              }
+            ),
+
+            h(
+              'div',
+              {
+                className:'chart-bar-label'
+              },
+              d.label
+            )
+          );
+        })
+      )
+    ),
+
+    h(
+      'div',
+      {className:'chart-section'},
+
+      h(
+        'h3',
+        null,
+        'Cards Reviewed (Last 7 Days)'
+      ),
+
+      h(
+        'div',
+        {className:'chart-bars'},
+
+        cardChart.map(function(d,i){
+          var pct=Math.round(
+            d.count/maxCards*100
+          );
+
+          return h(
+            'div',
+            {
+              className:'chart-bar-col',
+              key:i
+            },
+
+            h(
+              'div',
+              {
+                className:'chart-bar-value',
+                style:{
+                  color:d.count>0
+                    ?'var(--text-secondary)'
+                    :'var(--text-tertiary)'
+                }
+              },
+              d.count>0
+                ?d.count
+                :''
+            ),
+
+            h(
+              'div',
+              {
+                className:'chart-bar',
+                style:{
+                  height:Math.max(pct,2)+'%',
+                  background:'var(--accent)'
+                }
+              }
+            ),
+
+            h(
+              'div',
+              {
+                className:'chart-bar-label'
+              },
+              d.label
+            )
+          );
+        })
+      )
+    ),
+
+    h(
+      'div',
+      {className:'stats-overview'},
+
+      [
+        {
+          v:completedTasks+'/'+totalTasks,
+          l:'Total Tasks ('+rate+'%)'
+        },
+        {
+          v:totalCards,
+          l:'Total Cards'
+        },
+        {
+          v:masteredCards,
+          l:'Cards Mastered',
+          c:'var(--success)'
+        },
+        {
+          v:dueCards,
+          l:'Cards Due',
+          c:'var(--accent-text)'
+        }
+      ].map(function(s,i){
+        return h(
+          'div',
+          {
+            className:'stat-block',
+            key:i
+          },
+
+          h(
+            'div',
+            {
+              className:'sb-value',
+              style:{
+                color:s.c||'var(--text-primary)'
+              }
+            },
+            s.v
+          ),
+
+          h(
+            'div',
+            {className:'sb-label'},
+            s.l
+          )
+        );
+      })
+    )
+  );
+}
